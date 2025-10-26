@@ -40,9 +40,4 @@ The models predict the **median value of owner-occupied homes** for each dataset
    - Residuals  
    - Feature importance  
 
-## 📁 Project Structure
-├── bostonhousing.py # Linear Regression model (Boston)
-├── californiahousing.py # XGBoost model (California)
-├── requirements.txt # Dependencies
-├── README.md # Project description
-└── venv/ # Virtual environment (ignored in Git)
+
