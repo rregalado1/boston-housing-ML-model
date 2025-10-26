@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
+import numpy as np
 
 data = fetch_california_housing(as_frame = True)
 df = data.frame.copy()
@@ -23,15 +24,23 @@ print(df.describe().T)
 
 
 X = data.data
-y = data.target
+y = np.log1p(data.target)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state =42)
 print(X_train.shape, X_test.shape)
 
 #Characteristics of the XGBoost model
 xgb = XGBRegressor(
-n_estimators=200,learning_rate=0.05,max_depth=6,subsample=0.8,
-colsample_bytree = 0.8, random_state=42,n_jobs=-1,tree_method="hist",eval_metric="rmse")
+    n_estimators=1500,
+    learning_rate=0.03,
+    max_depth=6,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    random_state=42,
+    n_jobs=-1,
+    tree_method="hist",
+    eval_metric="rmse"
+)
 
 eval_set = [(X_train, y_train), (X_test,y_test)]
 
@@ -41,8 +50,9 @@ xgb.fit(
     verbose=True #show the progress
 )
 
-y_pred = xgb.predict(X_test)
-mse = mean_squared_error(y_test,y_pred)
+y_pred = np.expm1(xgb.predict(X_test))
+y_test_orig = np.expm1(y_test)
+mse = mean_squared_error(y_test_orig,y_pred)
 print(f"MSE:{mse:.4f}")
 
 results = xgb.evals_result()
@@ -58,10 +68,10 @@ plt.tight_layout()
 plt.show()
 
 plt.figure()
-plt.scatter(y_test, y_pred, alpha=0.5)
+plt.scatter(y_test_orig, y_pred, alpha=0.5)
 
-min_v = min(y_test.min(), y_pred.min())
-max_v = max(y_test.max(), y_pred.max())
+min_v = min(y_test_orig.min(), y_pred.min())
+max_v = max(y_test_orig.max(), y_pred.max())
 plt.plot([min_v, max_v], [min_v, max_v])
 plt.xlabel("Actual Values")
 plt.ylabel("Predicted Values")
@@ -70,7 +80,7 @@ plt.tight_layout()
 plt.show()
 
 
-residuals = y_test - y_pred
+residuals = y_test_orig - y_pred
 plt.figure()
 plt.scatter(y_pred, residuals, alpha=0.5)
 plt.axhline(0)
